@@ -23,11 +23,30 @@ QByteArray getFileBytes(const QString& fileName){
     }
 
     QByteArray fileContent = file.readAll();
-
-
     file.close();
     return fileContent;
+}
+bool LoadFile(const QString& fileName,QJsonObject jsonObject){
+    if (QDir::current().exists(fileName)){
+        return false;
     }
+    QFile file(fileName+".json");
+    if (!file.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+
+    QJsonDocument jsonDocument(jsonObject);
+    QByteArray jsonData = jsonDocument.toJson();
+
+    qint64 bytesWritten = file.write(jsonData);
+    file.close();
+
+    if (bytesWritten != jsonData.size()) {
+        return false;
+    }
+
+    return true;
+}
 
 
 
@@ -42,7 +61,7 @@ void createRoutes(QHttpServer& server){
         if (fileList.contains(schemaName)) {
 
             QByteArray byteArray = getFileBytes(schemaName);
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(byteArray,);
+            QJsonDocument jsonDoc = QJsonDocument::fromJson(byteArray);
             QJsonObject json = jsonDoc.object();
 
 
@@ -51,6 +70,11 @@ void createRoutes(QHttpServer& server){
         else {
             return QHttpServerResponse(QHttpServerResponder::StatusCode::NotFound);
         }
+    });
+    server.route("/schema",QHttpServerRequest::Method::Post,[](const QHttpServerRequest& request){
+        QJsonObject json = QJsonDocument::fromJson(request.body()).object();
+        bool load = LoadFile(request.query().queryItemValue("name"),json);
+        return  QHttpServerResponse(load ? QHttpServerResponder::StatusCode::Ok : QHttpServerResponder::StatusCode::BadRequest );
     });
 }
 
