@@ -1,7 +1,6 @@
 #include <QCoreApplication>
 #include <QtHttpServer>
 
- //Настройка текущего каталога
 void pathConfig(){
     QDir currentDir = QDir::current();
     currentDir.cdUp();
@@ -56,13 +55,14 @@ bool LoadFile(const QString& fileName,QJsonObject jsonObject){
 
 
 
-void createRoutes(QHttpServer& server){
+void createRoutes(QHttpServer& server,QString& curScheme){
+
     server.route("/",QHttpServerRequest::Method::Get,[](){
         return "Welcome to HTTP server";
 
     });
 
-    server.route("/schema",QHttpServerRequest::Method::Get,[](const QHttpServerRequest& request){
+    server.route("/schema",QHttpServerRequest::Method::Get,[](){
         QStringList fileList = QDir().entryList(QDir::NoDotAndDotDot|QDir::AllEntries);
 
         if (!fileList.isEmpty()) {
@@ -82,9 +82,12 @@ void createRoutes(QHttpServer& server){
     });
 
 
-    server.route("/schema/<arg>",QHttpServerRequest::Method::Get,[](QString name,const QHttpServerRequest& request){
+    server.route("/schema/<arg>",QHttpServerRequest::Method::Get,[&curScheme](QString name){
         QStringList fileList = QDir().entryList();
         if (fileList.contains(name)) {
+            qDebug()<<name;
+            curScheme = name;
+            qDebug()<<curScheme;
             auto jsonDoc = getDoc(name);
             return QHttpServerResponse(jsonDoc.object());
         }
@@ -93,15 +96,27 @@ void createRoutes(QHttpServer& server){
         }
     });
 
-
-
-
-
-
     server.route("/schema",QHttpServerRequest::Method::Post,[](const QHttpServerRequest& request){
         QJsonObject json = QJsonDocument::fromJson(request.body()).object();
         bool load = LoadFile(request.query().queryItemValue("name")+".json",json);
         return  QHttpServerResponse(load ? QHttpServerResponder::StatusCode::Ok : QHttpServerResponder::StatusCode::BadRequest );
+    });
+    server.route("/object/<arg>",QHttpServerRequest::Method::Get,[&curScheme](int id){
+        QJsonDocument jsonDoc = getDoc(curScheme);
+        QJsonObject jsonObject = jsonDoc.object();
+        QJsonArray objectsArray = jsonObject["objects"].toArray();
+
+        for (const auto& obj : objectsArray) {
+
+            QJsonObject objObject = obj.toObject();
+
+            if (objObject["id"].toInt() == id) {
+
+                return QHttpServerResponse(objObject);
+
+            }
+        }
+        return QHttpServerResponse(QHttpServerResponder::StatusCode::NotFound);
     });
 }
 
@@ -109,8 +124,9 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     QHttpServer server;
+    QString curScheme = "";
     pathConfig();
-    createRoutes(server);
+    createRoutes(server,curScheme);
     const auto port = 8080;
     auto selectedPort = server.listen(QHostAddress::LocalHost,port);
     qDebug() << "Local server start on "<< selectedPort;
