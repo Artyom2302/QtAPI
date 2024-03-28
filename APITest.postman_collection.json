@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "711b73f0-b6a9-497d-a6ac-f162e3a2e97d",
+		"name": "APITest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "26323283"
+	},
+	"item": [
+		{
+			"name": "Schema",
+			"item": [
+				{
+					"name": "getSchema",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/schema?schemaName=\"1243\"",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"schema"
+							],
+							"query": [
+								{
+									"key": "schemaName",
+									"value": "\"1243\""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getSchemas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/schema?schemaName=\"1243\"",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"schema"
+							],
+							"query": [
+								{
+									"key": "schemaName",
+									"value": "\"1243\""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PostScheme",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ParametorsScheme\": [\r\n        {\r\n            \"1\": \"123\",\r\n            \"2\": \"334\"\r\n        }\r\n    ],\r\n    \"objects\": [\r\n        {\r\n            \"P\": \"15000\",\r\n            \"id\": 1,\r\n            \"name\": \"object1\"\r\n        },\r\n        {\r\n            \"P\": \"123423\",\r\n            \"id\": 2,\r\n            \"name\": \"object2\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{url}}/schema/schema"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Object",
+			"item": [
+				{
+					"name": "getObject",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
