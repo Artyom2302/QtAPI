@@ -96,11 +96,17 @@ void createRoutes(QHttpServer& server,QString& curScheme){
         }
     });
 
-    server.route("/schema",QHttpServerRequest::Method::Post,[](const QHttpServerRequest& request){
+    server.route("/schema/<arg>",QHttpServerRequest::Method::Post,[](QString name,const QHttpServerRequest& request){
         QJsonObject json = QJsonDocument::fromJson(request.body()).object();
-        bool load = LoadFile(request.query().queryItemValue("name")+".json",json);
+        bool load = LoadFile(name+".json",json);
         return  QHttpServerResponse(load ? QHttpServerResponder::StatusCode::Ok : QHttpServerResponder::StatusCode::BadRequest );
     });
+    server.route("/object",QHttpServerRequest::Method::Get,[&curScheme](){
+        QJsonDocument jsonDoc = getDoc(curScheme);
+        QJsonObject jsonObject = jsonDoc.object();
+        return QHttpServerResponse(jsonObject["objects"].toArray(),QHttpServerResponder::StatusCode::Ok);
+    });
+
     server.route("/object/<arg>",QHttpServerRequest::Method::Get,[&curScheme](int id){
         QJsonDocument jsonDoc = getDoc(curScheme);
         QJsonObject jsonObject = jsonDoc.object();
@@ -108,11 +114,11 @@ void createRoutes(QHttpServer& server,QString& curScheme){
 
         for (const auto& obj : objectsArray) {
 
-            QJsonObject objObject = obj.toObject();
+            QJsonObject respObj = obj.toObject();
 
-            if (objObject["id"].toInt() == id) {
+            if (respObj["id"].toInt() == id) {
 
-                return QHttpServerResponse(objObject);
+                return QHttpServerResponse(respObj);
 
             }
         }
